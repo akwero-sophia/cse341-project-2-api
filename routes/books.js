@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const bookController = require('../controllers/bookController');
+const { isAuthenticated } = require('../middleware/auth'); // NEW: Import auth middleware
 
 /**
  * @swagger
@@ -48,6 +49,13 @@ const bookController = require('../controllers/bookController');
  *           type: string
  *           format: date-time
  *           description: Last update timestamp
+ *   securitySchemes:
+ *     OAuth2:
+ *       type: oauth2
+ *       flows:
+ *         authorizationCode:
+ *           authorizationUrl: /auth/google
+ *           tokenUrl: /auth/google/callback
  */
 
 /**
@@ -106,9 +114,11 @@ router.get('/:id', bookController.getBookById);
  * @swagger
  * /books:
  *   post:
- *     summary: Create a new book
+ *     summary: Create a new book (Protected - Requires Authentication)
  *     tags: [Books]
- *     description: Add a new book to the database
+ *     description: Add a new book to the database. Requires user to be logged in via OAuth.
+ *     security:
+ *       - OAuth2: []
  *     requestBody:
  *       required: true
  *       content:
@@ -152,18 +162,22 @@ router.get('/:id', bookController.getBookById);
  *                   type: string
  *       400:
  *         description: Validation error
+ *       401:
+ *         description: Unauthorized - Login required
  *       500:
  *         description: Server error
  */
-router.post('/', bookController.createBook);
+router.post('/', isAuthenticated, bookController.createBook); // PROTECTED
 
 /**
  * @swagger
  * /books/{id}:
  *   put:
- *     summary: Update a book
+ *     summary: Update a book (Protected - Requires Authentication)
  *     tags: [Books]
- *     description: Update an existing book's information
+ *     description: Update an existing book's information. Requires user to be logged in via OAuth.
+ *     security:
+ *       - OAuth2: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -201,12 +215,14 @@ router.post('/', bookController.createBook);
  *         description: Book updated successfully
  *       400:
  *         description: Validation error or invalid ID
+ *       401:
+ *         description: Unauthorized - Login required
  *       404:
  *         description: Book not found
  *       500:
  *         description: Server error
  */
-router.put('/:id', bookController.updateBook);
+router.put('/:id', isAuthenticated, bookController.updateBook); // PROTECTED
 
 /**
  * @swagger
@@ -232,6 +248,6 @@ router.put('/:id', bookController.updateBook);
  *       500:
  *         description: Server error
  */
-router.delete('/:id', bookController.deleteBook);
+router.delete('/:id', isAuthenticated, bookController.deleteBook); // PROTECTED
 
 module.exports = router;

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authorController = require('../controllers/authorController');
+const { isAuthenticated } = require('../middleware/auth'); // NEW: Import auth middleware
 
 /**
  * @swagger
@@ -97,9 +98,11 @@ router.get('/:id', authorController.getAuthorById);
  * @swagger
  * /authors:
  *   post:
- *     summary: Create a new author
+ *     summary: Create a new author (Protected - Requires Authentication)
  *     tags: [Authors]
- *     description: Add a new author to the database
+ *     description: Add a new author to the database. Requires user to be logged in via OAuth.
+ *     security:
+ *       - OAuth2: []
  *     requestBody:
  *       required: true
  *       content:
@@ -136,18 +139,22 @@ router.get('/:id', authorController.getAuthorById);
  *                   type: string
  *       400:
  *         description: Validation error or duplicate email
+ *       401:
+ *         description: Unauthorized - Login required
  *       500:
  *         description: Server error
  */
-router.post('/', authorController.createAuthor);
+router.post('/', isAuthenticated, authorController.createAuthor); // PROTECTED
 
 /**
  * @swagger
  * /authors/{id}:
  *   put:
- *     summary: Update an author
+ *     summary: Update an author (Protected - Requires Authentication)
  *     tags: [Authors]
- *     description: Update an existing author's information
+ *     description: Update an existing author's information. Requires user to be logged in via OAuth.
+ *     security:
+ *       - OAuth2: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -179,12 +186,14 @@ router.post('/', authorController.createAuthor);
  *         description: Author updated successfully
  *       400:
  *         description: Validation error or invalid ID
+ *       401:
+ *         description: Unauthorized - Login required
  *       404:
  *         description: Author not found
  *       500:
  *         description: Server error
  */
-router.put('/:id', authorController.updateAuthor);
+router.put('/:id', isAuthenticated, authorController.updateAuthor); // PROTECTED
 
 /**
  * @swagger
@@ -210,6 +219,6 @@ router.put('/:id', authorController.updateAuthor);
  *       500:
  *         description: Server error
  */
-router.delete('/:id', authorController.deleteAuthor);
+router.delete('/:id', isAuthenticated, authorController.deleteAuthor); // PROTECTED
 
 module.exports = router;
